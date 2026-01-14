@@ -1,0 +1,142 @@
+# ============================================================
+# ENVIRONMENT & SECRETS
+# ============================================================
+.env
+.env.local
+.env.*.local
+config.local.py
+secrets.py
+credentials.json
+*.key
+*.pem
+
+# ============================================================
+# PYTHON
+# ============================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments (contains all installed packages - can be recreated from requirements.txt)
+venv/
+env/
+ENV/
+airflow_venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# PyCharm IDE files
+.idea/
+*.iml
+
+# VS Code IDE files
+.vscode/
+*.code-workspace
+
+# Jupyter Notebook checkpoints (temporary auto-save files)
+.ipynb_checkpoints/
+*.ipynb
+
+# ============================================================
+# AIRFLOW
+# ============================================================
+# Airflow generated - can be recreated
+airflow.cfg
+airflow.db
+airflow-webserver.pid
+logs/
+*.log
+*.pid
+
+# Airflow database (SQLite)
+airflow/airflow.db
+
+# ============================================================
+# DATA FILES (LARGE & CAN BE RE-DOWNLOADED)
+# ============================================================
+# Raw CSV files from GitHub (can be re-downloaded)
+data/Artworks.csv
+data/Artists.csv
+data/*.csv
+data/*.json
+
+# Processed data files (can be regenerated)
+data/processed/
+data/staging/
+data/transformed/
+
+# Exclude very large files (>100MB)
+*.parquet
+*.pickle
+*.pkl
+
+# ============================================================
+# DATABASE
+# ============================================================
+# Database dumps (often large and contain sensitive data)
+*.sql.gz
+*.dump
+*.backup
+backups/
+dumps/
+
+# PostgreSQL temporary files
+*.psql_history
+.pgpass
+
+# DBeaver configuration (contains connection details)
+.dbeaver/
+*.dbeaver-data-sources.xml
+.dbeaver-data-sources*.xml
+
+# ============================================================
+# DOCUMENTATION (TEMPORARY/GENERATED)
+# ============================================================
+# Generated documentation
+docs/_build/
+site/
+
+# Temporary documentation files
+*.tmp
+*.temp
+*~
+
+# ============================================================
+# OPERATING SYSTEM FILES
+# ============================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================================
+# PROJECT-SPECIFIC
+# ============================================================
+# Test outputs
+test_outputs/
+scratch/
+temp/
+
+# Local notes and drafts (not ready for commit)
+NOTES.md
+TODO.local.md
+scratch_*.py
+
+# To include small sample datasets for testing:
+# !data/*.csv
