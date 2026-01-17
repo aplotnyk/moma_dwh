@@ -11,7 +11,7 @@ load_dotenv()
 PROJECT_ROOT = Path(__file__).parent.absolute()
 
 # Airflow home (where DAGs are stored)
-AIRFLOW_HOME = Path.home() / 'airflow'
+AIRFLOW_HOME = Path.home() / 'Documents' / 'git_moma_dwh'
 
 # Database Configuration
 DB_CONFIG = {
