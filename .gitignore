@@ -51,6 +51,7 @@ airflow-webserver.pid
 logs/
 *.log
 *.pid
+*passwords.json.generated
 
 # Airflow database (SQLite)
 airflow/airflow.db
