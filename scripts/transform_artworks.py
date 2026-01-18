@@ -1,11 +1,9 @@
 """
-Transform Artworks Data - Vectorized & Optimized
-Uses vectorized operations instead of .apply() for 10-20x speedup
-Loads all data at once (SQLAlchemy upgrade fixed compatibility)
+Transform Artworks Data
+Cleans, standardizes, and enriches artworks data from staging
 """
 
 import pandas as pd
-import numpy as np
 from sqlalchemy import create_engine, text
 from datetime import datetime
 from dotenv import load_dotenv
@@ -38,10 +36,10 @@ def load_staging_artworks(engine):
     print(f"✓ Loaded {len(df):,} artworks from staging")
     return df
 
-def parse_creation_dates_vectorized(df):
-    """Vectorized date parsing - 10x faster than apply"""
-    print("  Parsing creation dates (vectorized)...")
-    
+def parse_creation_dates(df):
+    # Extract year and certainty from date string
+    print("  Parsing creation dates...")
+
     date_series = df['date'].fillna('').astype(str).str.strip()
     
     # Initialize result arrays
@@ -88,10 +86,10 @@ def parse_creation_dates_vectorized(df):
     
     return df
 
-def parse_dimensions_vectorized(df):
-    """Vectorized dimension parsing"""
-    print("  Parsing dimensions (vectorized)...")
-    
+def parse_dimensions(df):
+
+    print("  Parsing dimensions...")
+
     # Parse individual columns
     df['height_cm'] = pd.to_numeric(df['height_cm'], errors='coerce')
     df['width_cm'] = pd.to_numeric(df['width_cm'], errors='coerce')
@@ -117,19 +115,17 @@ def parse_dimensions_vectorized(df):
     df['dimensions_text'] = df['dimensions']
     return df
 
-def parse_acquisition_dates_vectorized(df):
-    """Vectorized acquisition date parsing"""
-    print("  Parsing acquisition dates (vectorized)...")
-    
+def parse_acquisition_dates(df):
+    # Convert acquisition date & acquisition_year to proper date/year format
+
+    print("  Parsing acquisition dates...")
+
     df['date_acquired'] = pd.to_datetime(df['date_acquired'], errors='coerce')
     df['acquisition_year'] = df['date_acquired'].dt.year
     
     return df
 
-def extract_acquisition_method_vectorized(df):
-    """Vectorized acquisition method extraction"""
-    print("  Extracting acquisition method (vectorized)...")
-    
+def extract_acquisition_method(df):
     credit_lower = df['credit_line'].fillna('').astype(str).str.lower()
     
     # Default to Unknown
@@ -157,10 +153,10 @@ def extract_acquisition_method_vectorized(df):
     
     return df
 
-def calculate_quality_scores_vectorized(df):
-    """Vectorized quality score calculation"""
-    print("  Calculating quality scores (vectorized)...")
-    
+def calculate_quality_scores(df):
+    # Calculate data quality score for artwork
+    print("  Calculating quality scores...")
+
     score = pd.Series(0.0, index=df.index)
     
     # Title (15%)
@@ -191,28 +187,25 @@ def calculate_quality_scores_vectorized(df):
     return df
 
 def transform_artworks(df_artworks):
-    """Apply all transformations using vectorized operations"""
-    print("\nTransforming artwork data...")
+    # 1. Parse creation dates
+    df_artworks = parse_creation_dates(df_artworks)
     
-    # 1. Parse creation dates (vectorized)
-    df_artworks = parse_creation_dates_vectorized(df_artworks)
+    # 2. Parse dimensions
+    df_artworks = parse_dimensions(df_artworks)
     
-    # 2. Parse dimensions (vectorized)
-    df_artworks = parse_dimensions_vectorized(df_artworks)
+    # 3. Parse acquisition dates
+    df_artworks = parse_acquisition_dates(df_artworks)
     
-    # 3. Parse acquisition dates (vectorized)
-    df_artworks = parse_acquisition_dates_vectorized(df_artworks)
+    # 4. Extract acquisition method
+    df_artworks = extract_acquisition_method(df_artworks)
     
-    # 4. Extract acquisition method (vectorized)
-    df_artworks = extract_acquisition_method_vectorized(df_artworks)
-    
-    # 5. Convert cataloged boolean (vectorized)
-    print("  Converting boolean fields (vectorized)...")
+    # 5. Convert cataloged boolean
+    print("  Converting boolean fields...")
     cataloged_str = df_artworks['cataloged'].fillna('').astype(str).str.upper()
     df_artworks['cataloged'] = cataloged_str.isin(['Y', 'YES', 'TRUE', '1'])
     
-    # 6. Calculate quality scores (vectorized)
-    df_artworks = calculate_quality_scores_vectorized(df_artworks)
+    # 6. Calculate quality scores
+    df_artworks = calculate_quality_scores(df_artworks)
     
     # 7. Rename columns
     df_artworks['moma_url'] = df_artworks['url']
@@ -222,7 +215,7 @@ def transform_artworks(df_artworks):
     return df_artworks
 
 def load_to_transformed(df, engine):
-    """Load transformed artworks to database"""
+    # Load transformed artworks to database
     print("\nLoading to transformed schema...")
     
     columns_to_load = [
@@ -237,7 +230,7 @@ def load_to_transformed(df, engine):
     df_load = df[columns_to_load].copy()
     
     # Clear existing data
-    with engine.begin() as conn:
+    with engine.begin() as conn:    # Use begin() for automatic commit
         conn.execute(text("TRUNCATE TABLE transformed.transformed_artworks CASCADE"))
     
     # Create fresh engine for to_sql
@@ -252,15 +245,15 @@ def load_to_transformed(df, engine):
         if_exists='append',
         index=False,
         method='multi',
-        chunksize=5000  # Larger chunks since we're not transforming
+        chunksize=5000
     )
     
-    write_engine.dispose()
+    write_engine.dispose() # To close all connections of the connection pool
     
     print(f"✓ Loaded {len(df_load):,} transformed artworks")
 
 def verify_transformation(engine):
-    """Verify transformed artwork data"""
+    # Verify transformed artwork data
     print("\n" + "="*60)
     print("Verifying artwork transformation...")
     print("="*60)
@@ -326,7 +319,7 @@ def main():
         # Load staging data (all at once - SQLAlchemy fixed)
         df_artworks = load_staging_artworks(engine)
         
-        # Transform (vectorized operations)
+        # Transform
         df_transformed = transform_artworks(df_artworks)
         
         # Load to transformed schema

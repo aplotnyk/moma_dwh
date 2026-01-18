@@ -1,16 +1,13 @@
 """
 Transform Artists Data - Memory Optimized Version
 Cleans, standardizes, and enriches artist data from staging
-Processes data in chunks to avoid OOM errors
 """
 
 import pandas as pd
-import numpy as np
 from sqlalchemy import create_engine, text
 from datetime import datetime
 from dotenv import load_dotenv
 import os
-import re
 from pathlib import Path
 import sys
 import psycopg2
@@ -247,7 +244,7 @@ def load_to_transformed(df, engine):
     df_load = df[columns_to_load].copy()
     
     # Clear existing data
-    with engine.begin() as conn:
+    with engine.begin() as conn: # Use begin() for automatic commit
         conn.execute(text("TRUNCATE TABLE transformed.transformed_artists CASCADE"))
     
     # Create a fresh engine for to_sql
@@ -265,7 +262,7 @@ def load_to_transformed(df, engine):
         chunksize=1000
     )
     
-    write_engine.dispose()  # Clean up
+    write_engine.dispose()  # To close all connections of the connection pool
     
     print(f"✓ Loaded {len(df_load):,} transformed artists")
 

@@ -16,7 +16,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import DB_CONNECTION_STRING, WIKIDATA_USER_AGENT
 
-
 # def create_db_connection():
 #     """ Create database connection with connection pooling for better performance"""
 #     engine = create_engine(
