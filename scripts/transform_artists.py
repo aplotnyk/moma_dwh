@@ -20,12 +20,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import DB_CONNECTION_STRING
 
 def create_db_connection():
-    """Create database connection using SQLAlchemy with connection string from config.py"""
     engine = create_engine(DB_CONNECTION_STRING)
     return engine
 
 def create_psycopg2_connection():
-    """Create a raw psycopg2 connection for pandas compatibility"""
+    # Create a raw psycopg2 connection for pandas compatibility
     from urllib.parse import urlparse
     
     result = urlparse(DB_CONNECTION_STRING)
@@ -40,10 +39,8 @@ def create_psycopg2_connection():
     return conn
 
 def load_staging_artists(engine):
-    """Load artists from staging - optimized to use less memory"""
     print("Loading artists from staging...")
     
-    # Only load columns we actually need
     query = """
         SELECT 
             constituent_id,
@@ -62,16 +59,17 @@ def load_staging_artists(engine):
         # Read with dtype optimization to reduce memory usage
         df = pd.read_sql_query(
             query, 
-            conn,
-            dtype={
-                'constituent_id': 'Int32',  # Use nullable integer
-                'display_name': 'string',
-                'nationality': 'string',
-                'gender': 'string',
-                'begin_date': 'string',
-                'end_date': 'string',
-                'wiki_qid': 'string'
-            }
+            conn
+            # ,
+            # dtype={
+            #     'constituent_id': 'Int32',  # Use nullable integer
+            #     'display_name': 'string',
+            #     'nationality': 'string',
+            #     'gender': 'string',
+            #     'begin_date': 'string',
+            #     'end_date': 'string',
+            #     'wiki_qid': 'string'
+            # }
         )
     finally:
         conn.close()
@@ -80,12 +78,13 @@ def load_staging_artists(engine):
     return df
 
 def clean_year(year_str):
-    """Extract year from various formats"""
+    # Extract year from various formats
     if pd.isna(year_str) or year_str == 'None' or year_str == '':
         return None
     
     try:        
         year = int(float(year_str))
+        # Validate reasonable range
         if 1000 <= year <= 2025:
             return year
         else:
@@ -94,7 +93,7 @@ def clean_year(year_str):
         return None
 
 def standardize_gender(gender_str):
-    """Standardize gender values"""
+    # Standardize gender values
     if pd.isna(gender_str) or gender_str == 'None' or gender_str == '':
         return 'Unknown'
     
@@ -110,7 +109,7 @@ def standardize_gender(gender_str):
         return 'Unknown'
 
 def calculate_data_quality_score(row):
-    """Calculate data quality score (0-1)"""
+    # Calculate data quality score (0-1)
     score = 0.0
     
     # Birth year (20%)
@@ -140,7 +139,7 @@ def calculate_data_quality_score(row):
     return round(score, 2)
 
 def transform_artists(df_artists, engine):
-    """Apply all transformations to artist data"""
+    # Apply all transformations to artist data
     print("\nTransforming artist data...")
     
     # 1. Clean years
@@ -155,7 +154,7 @@ def transform_artists(df_artists, engine):
         if pd.notna(row['birth_year']) and pd.notna(row['death_year']) 
         else None, 
         axis=1
-    )
+    ) # calculating lifespan for each one of rows with available data
     
     # 3. Standardize gender
     print("  Standardizing gender...")
@@ -173,7 +172,7 @@ def transform_artists(df_artists, engine):
     return df_artists
 
 def add_wikidata_enrichment(df_artists, engine):
-    """Add Wikidata enrichment data"""
+    # Add Wikidata enrichment data
     print("    Fetching Wikidata enrichments...")
     
     wikidata_query = """
@@ -193,16 +192,17 @@ def add_wikidata_enrichment(df_artists, engine):
     try:
         df_wikidata = pd.read_sql_query(
             wikidata_query, 
-            conn,
-            dtype={
-                'wikidata_id': 'string',
-                'movements': 'object',
-                'birth_place': 'string',
-                'birth_place_country': 'string',
-                'death_place': 'string',
-                'education': 'string',
-                'influenced_by': 'object'
-            }
+            conn
+            # ,
+            # dtype={
+            #     'wikidata_id': 'string',
+            #     'movements': 'object',
+            #     'birth_place': 'string',
+            #     'birth_place_country': 'string',
+            #     'death_place': 'string',
+            #     'education': 'string',
+            #     'influenced_by': 'object'
+            # }
         )
     finally:
         conn.close()
@@ -221,14 +221,13 @@ def add_wikidata_enrichment(df_artists, engine):
     # Rename column for consistency
     df_artists['art_movements'] = df_artists['movements']
     df_artists = df_artists.drop('movements', axis=1, errors='ignore')
+
     df_artists['artist_id'] = df_artists['constituent_id']
 
     return df_artists
 
 def load_to_transformed(df, engine):
     print("\nLoading to transformed schema...")
-    
-    print(f"Available columns: {list(df.columns)}")
     
     columns_to_load = [
         'artist_id', 'display_name', 'birth_year', 'death_year', 'is_living',
@@ -237,9 +236,6 @@ def load_to_transformed(df, engine):
         'birth_place_country', 'death_place', 'education', 'influenced_by',
         'data_quality_score'
     ]
-    
-    columns_to_load = [col for col in columns_to_load if col in df.columns]
-    print(f"Loading columns: {columns_to_load}")
     
     df_load = df[columns_to_load].copy()
     
