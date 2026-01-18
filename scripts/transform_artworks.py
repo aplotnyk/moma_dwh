@@ -1,6 +1,8 @@
 """
 Transform Artworks Data
 Cleans, standardizes, and enriches artworks data from staging
+Uses vectorized approach transforming all rows in the dataframe at once
+(instead of row by row transformation) for time efficiency
 """
 
 import pandas as pd
