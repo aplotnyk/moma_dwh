@@ -16,20 +16,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import DB_CONNECTION_STRING, WIKIDATA_USER_AGENT
 
-# def create_db_connection():
-#     """ Create database connection with connection pooling for better performance"""
-#     engine = create_engine(
-#         DB_CONNECTION_STRING,
-#         pool_size=10,
-#         max_overflow=20,
-#         pool_pre_ping=True,
-#         connect_args={
-#             'connect_timeout': 10,
-#             'options': '-c statement_timeout=30000'
-#         }
-#     )
-#     return engine
-
 def create_db_connection():
 # Create database connection using SQLAlchemy with connection string from config.py
     return create_engine(DB_CONNECTION_STRING)
