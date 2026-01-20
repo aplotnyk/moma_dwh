@@ -19,8 +19,8 @@ Processes ~140,000 artworks and ~15,000 artists, adding geographic regions, econ
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     STAGING LAYER                            │
-│  Raw data landing zone - exact copy from sources             │
+│                     STAGING LAYER                           │
+│  Raw data landing zone - exact copy from sources            │
 │  • MoMA CSVs (Artworks, Artists)                            │
 │  • Wikidata API responses (artist biographies)              │
 │  • Economic data (FRED API)                                 │
@@ -28,17 +28,17 @@ Processes ~140,000 artworks and ~15,000 artists, adding geographic regions, econ
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                  TRANSFORMATION LAYER                        │
+│                  TRANSFORMATION LAYER                       │
 │  Cleaned, standardized, quality-scored data                 │
 │  • Data type conversions (text → integers, dates)           │
 │  • Standardization (gender, nationality)                    │
-│  • Enrichment (geo mapping, Wikidata merging)              │
+│  • Enrichment (geo mapping, Wikidata merging)               │
 │  • Quality scoring (completeness metrics)                   │
 │  • Bridge tables (many-to-many relationships)               │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                   DIMENSIONAL LAYER                          │
+│                   DIMENSIONAL LAYER                         │
 │  Star schema optimized for analytics (BI-ready)             │
 │  • Dimension Tables: Artist, Artwork, Date, Geography       │
 │  • Fact Tables: Acquisitions, Artist Summary                │
@@ -103,7 +103,7 @@ df.loc[df['date'].str.contains('c.'), 'certainty'] = 'circa'
 #### 3. **Bridge Table Pattern**
 Handles many-to-many relationships (collaborative artworks):
 ```
-Artwork "Guernica" ──┐
+Artwork "Guernica" ───┐
                       ├─→ Bridge Table ──→ Artist "Picasso"
 Artwork "The Kiss" ───┘                  (with role metadata)
 ```
