@@ -1,5 +1,5 @@
 """
-Transform Artists Data - Memory Optimized Version
+Transform Artists Data
 Cleans, standardizes, and enriches artist data from staging
 """
 
