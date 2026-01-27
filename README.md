@@ -47,6 +47,68 @@ Processes ~140,000 artworks and ~15,000 artists, adding geographic regions, econ
 ```
 ---
 
+## 🗂️ Database Schema - Entity Relationship Diagrams
+
+### 1. Staging Layer - Raw Data Landing Zone
+
+The staging layer stores unprocessed data exactly as received from sources. All columns are stored as TEXT to preserve original formats.
+
+![Staging Schema ERD](MoMa_dwh_Staging_ERD.png)
+
+**Key Tables:**
+- `staging_moma_artworks` - Raw artwork data from GitHub CSV (~140K rows)
+- `staging_moma_artists` - Raw artist data from GitHub CSV (~15K rows)
+- `staging_wikidata_artists` - Enrichment data from Wikidata API (batch SPARQL queries)
+- `staging_geographic_reference` - Country/continent mappings from REST Countries API
+- `staging_economic_data` - Historical GDP, inflation, unemployment from FRED API
+
+---
+
+### 2. Transformation Layer - Cleaned & Enriched Data
+
+The transformation layer applies data cleaning, type conversions, standardization, and enrichment. Includes quality scoring and bridge tables for many-to-many relationships.
+
+![Transformed Schema ERD](MoMa_dwh_Transformed_ERD.png)
+
+**Key Tables:**
+- `transformed_artworks` - Cleaned artwork data with parsed dates, dimensions, and quality scores
+- `transformed_artists` - Enriched artist data with geographic context, movements, and Wikidata bio
+- `bridge_artwork_artist` - Many-to-many relationship (handles collaborative artworks)
+- `transformed_geography` - Geographic reference with artist/artwork counts by nationality
+- `transformed_date_economics` - Date dimension with economic context (GDP, recessions, eras)
+
+**Key Transformations:**
+- Date parsing: "c. 1920" → year=1920, certainty='circa'
+- Gender standardization: "M", "(Male)" → "Male"
+- Nationality mapping: "American" → country="United States", continent="North America"
+- Quality scoring: Automated completeness metrics (0.0-1.0)
+
+---
+
+### 3. Dimensional Layer - Star Schema for Analytics
+
+The dimensional layer implements a star schema optimized for BI queries. Fact tables reference dimension tables through foreign keys.
+
+![Dimensional Schema ERD](MoMa_dwh_Dimensional_ERD.png)
+
+**Dimension Tables:**
+- `dim_artist` - Artist dimension (SCD Type 0 - no history tracking)
+- `dim_artwork` - Artwork dimension with physical attributes
+- `dim_date` - Date dimension with economic and historical context
+- `dim_geography` - Geographic dimension keyed by nationality
+
+**Fact Tables:**
+- `fact_artwork_acquisitions` - One row per artwork acquisition with context
+- `fact_artist_summary` - Aggregate fact table (one row per artist)
+
+**Star Schema Benefits:**
+- Fast joins (denormalized dimensions)
+- Simple queries (business users can write SQL)
+- Pre-calculated metrics (years_from_creation_to_acquisition)
+- Optimized for aggregations
+
+---
+
 ## 📊 Data Flow
 
 ### Complete Pipeline Journey
@@ -232,7 +294,7 @@ Each phase has verification:
    ```bash
    git clone <repo-url>
    cd moma_project
-   pip install -r requirements.txt
+   pip install -r dependencies.txt
    ```
 
 2. **Configure environment variables** (`.env` file)
@@ -354,4 +416,3 @@ For detailed technical documentation:
 - **[Transformation Layer](MoMA_Project_-_Transformation_Layer_Setup_Guide.pdf)**: Cleaning and enrichment logic
 - **[Dimensional Layer](MoMA_Project_-_Dimensional_Layer_Setup_Guide.pdf)**: Facts and Dimensions tables ready to use for analytial queries
 - **[Project Plan](MoMA_Art_Collection_Analytics_-_Data_Engineering_Project_Plan.pdf)**: Original design document -->
-

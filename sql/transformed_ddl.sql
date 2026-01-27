@@ -171,7 +171,7 @@ COMMENT ON TABLE transformed.transformed_geography
     IS 'Geographic reference data keyed by nationality';
 
 COMMENT ON COLUMN transformed.transformed_geography.nationality 
-    IS 'Nationality adjective - primary key for linking to transformed_artists';
+    IS 'Primary key for linking to transformed_artists';
 
 -- ============================================================
 -- TRANSFORMED DATE ECONOMICS TABLE
