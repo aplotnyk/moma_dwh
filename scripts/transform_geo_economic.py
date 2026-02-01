@@ -132,7 +132,7 @@ def load_geography_to_db(df_geo, engine):
     with engine.connect() as conn:
         conn.execute(text("TRUNCATE TABLE transformed.transformed_geography CASCADE"))
         conn.commit()
-    
+
     # Select columns in correct order for database
     columns_to_load = [
         'nationality',
@@ -163,6 +163,7 @@ def load_geography_to_db(df_geo, engine):
     )
     
     print(f"✓ Loaded {len(df_load):,} geographic records")
+
 # ============================================================
 # ECONOMICS AND DATE CONTEXT TRANSFORMATION
 # ============================================================
@@ -319,7 +320,8 @@ def verify_geographic_transform(engine):
                 nationality,
                 country_name,
                 continent,
-                total_moma_artists
+                total_moma_artists,
+                total_moma_artworks
             FROM transformed.transformed_geography
             WHERE total_moma_artists > 0
             ORDER BY total_moma_artists DESC

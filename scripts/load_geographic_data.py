@@ -171,6 +171,7 @@ def country_to_nationality(country):
         "Trinidad and Tobago": "trinidad and tobagonian",
         "Azerbaijan": "azerbaijani",
         "Kyrgyzstan": "kyrgyz",
+        "Afghanistan": "afghan",
         "United Arab Emirates": "emirati"
     }
 
