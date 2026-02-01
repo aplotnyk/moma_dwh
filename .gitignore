@@ -54,6 +54,9 @@ logs/
 *passwords.json.generated
 
 # Airflow database (SQLite)
+airflow.db
+airflow.db-shm
+airflow.db-wal
 airflow/airflow.db
 
 # ============================================================
