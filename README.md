@@ -216,9 +216,12 @@ The project uses **5 DAGs** organized in a hierarchical structure for modularity
    │       ├─ transform_artists ───┼─→ (parallel)
    │       │                       │
    │       └─ sync_point ──────────┘
-   │           ├─ build_bridge_table
-   │           ├─ transform_geo (depends from artist table)
-   │           ├─ transform_economic
+   │           ├─ build_bridge_table (SEQUENTIAL - runs first)
+   │           │       └─→ Builds artwork-artist relationships
+   │           │
+   │           ├─ transform_geo ────┐
+   │           └─ transform_economic┼─→ (parallel, after bridge)
+   │                                │
    │           └─ verify_transformations
    │
    └─ Phase 4: Dimensional Load
@@ -229,9 +232,9 @@ The project uses **5 DAGs** organized in a hierarchical structure for modularity
            │   ├─ load_dim_artist
            │   └─ load_dim_artwork
            │
-           ├─ Facts (after dimensions)
-           │   ├─ load_fact_acquisitions
-           │   └─ load_fact_artist_summary
+           ├─ Facts (SEQUENTIAL - changed from parallel)
+           │   ├─ load_fact_acquisitions (runs first)
+           │   └─ load_fact_artist_summary (runs after acquisitions)
            │
            └─ verify_dimensional
 ```
@@ -253,10 +256,13 @@ trigger_load_staging = TriggerDagRunOperator(
 # Phase 3: Artworks and Artists transform in parallel
 [transform_artworks, transform_artists] >> sync_point
 
-# Then dependent tasks run
-sync_point >> [build_bridge, transform_geo, transform_economic]
+# Bridge builds first (needs both artworks and artists)
+sync_point >> build_bridge
+
+# Then geography and economics run in parallel
+build_bridge >> [transform_geo, transform_economic]
 ```
-**Benefit**: Reduces total runtime (artworks + artists = 10 min parallel vs 20 min sequential)
+**Benefit**: Reduces total runtime (artworks + artists = 10 min parallel vs 20 min sequential) while respecting data dependencies
 
 #### 3. **Verification Tasks**
 Each phase has verification:

@@ -123,10 +123,8 @@ verify_dimensional_task = PythonOperator(
 ] >> sync_dimensions
 
 # Sync -> Both Facts (parallel, both need dimensions)
-sync_dimensions >> [
-    load_fact_acquisitions_task,
-    load_fact_summary_task
-]
+# Load acquisitions first, THEN summary (summary queries acquisitions)
+sync_dimensions >> load_fact_acquisitions_task >> load_fact_summary_task
 
 # Both Facts -> Sync Point
 [

@@ -101,8 +101,11 @@ verify_staging >> [transform_artworks_task, transform_artists_task]
 # Both parallel transforms -> Sync point
 [transform_artworks_task, transform_artists_task] >> sync_transformations
 
-# Sync -> Geo/Economic (needs artists for counts) and Bridge (needs both)
-sync_transformations >> [transform_economic_task, transform_geo_task, build_bridge_task]
+# Sync -> Bridge first (needs both artworks and artists)
+sync_transformations >> build_bridge_task
 
-# Both Geo/Economic and Bridge -> Verify
-[transform_economic_task, transform_geo_task, build_bridge_task] >> verify_final
+# Bridge -> Then Geo/Economic (geo needs bridge for artwork counts)
+build_bridge_task >> [transform_economic_task, transform_geo_task]
+
+# Both Geo/Economic -> Verify
+[transform_economic_task, transform_geo_task] >> verify_final
